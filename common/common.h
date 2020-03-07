@@ -1,6 +1,5 @@
 #ifndef COMMON_H
 #define COMMON_H
-#define _DEBUG
 
 
 #include "head.h"
@@ -13,6 +12,13 @@ struct Msg {
     char name[20];
     char real_name[20];
     char path[50];
+};
+
+struct Msg_t {
+    char name[20];
+    char real_name[20];
+    char path[50];
+    int port;
 };
 
 struct Code {

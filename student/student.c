@@ -8,8 +8,8 @@
 #include "student.h"
 #include <pwd.h>
 
-//char config[50] = "/etc/HelpSys/student.conf";
-char config[50] = "./student.conf";
+char config[50] = "/etc/HelpSys/student.conf";
+//char config[50] = "./student.conf";
 char key_file[50];
 
 
@@ -56,11 +56,13 @@ int main() {
     DBG("Config done.\n");
 
     if ((sockfd = connect_nonblock(master_port, master_ip, 30000)) < 0) {
-        DBG("Can not connect to the server.\n");
+        printf("Can not connect to the server.\n");
         exit(1);
     }
     
     
+    printf("Connected to Server.\n");
+
     if (send(sockfd, (void *)&type, sizeof(int), 0) <= 0) {
         perror("send type");
         exit(1);
@@ -95,8 +97,6 @@ int main() {
         exit(1);
     }
 
-    DBG("Server has provide you a Help-Code : %d\n", code.code);
-    DBG("Please Tell Your Teacher This Help-Code %d\n", code.code);
     
     //Here we need recv a id_rsa key
     
@@ -118,14 +118,14 @@ int main() {
         char user_str[100];
         sprintf(port_str, "%d:127.0.0.1:22", code.port);
         sprintf(user_str, "Helper@%s", master_ip);
-        DBG("%d\n",getpid());
+        printf("Server has provide you a Help-Code : %d\n", code.code);
+        printf("Enter Ctrl+C terminate this.");
         int ret = execl("/usr/bin/ssh", "ssh", "-i",key_file ,"-N", "-R", port_str, user_str, NULL);
         if (ret < 0) perror("excel");
         return 0;
     } else {
-        while (1) {
-            sleep(2);
-        }
+        wait(NULL);
+        remove(key_file);
     }
 
     return 0;

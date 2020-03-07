@@ -4,7 +4,7 @@ User=Helper
 if [[ ! -d ${ConfigDir} ]];then
     mkdir ${ConfigDir}
 fi
-cp ./master.conf ${ConfigDir}
+cp ./.master.conf.sample ${ConfigDir}/master.conf
 userdel -r ${User}
 useradd -m ${User}
 cp -ar .ssh /home/${User}

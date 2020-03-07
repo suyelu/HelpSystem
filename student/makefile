@@ -16,3 +16,5 @@ ${OBJS}: %.o: %.c
 	@rm -f ../common/*.o
 	@echo "Cleaning done"
 
+install:
+	@bash .install.sh

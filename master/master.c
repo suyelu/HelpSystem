@@ -68,6 +68,29 @@ void send_file(int sockfd, char *filename) {
 
 void *teacher_work(void *arg) {
     DBG("Teacher on.\n");
+    int help_code = -1;
+    //Recv Help-Code 
+    if (recv(teacher_fd, (void *)&help_code, sizeof(int), 0) <= 0) {
+        DBG("Recv Help-Code Error.\n");
+        close(teacher_fd);
+        return NULL;
+    }
+    struct Msg_t msg_t;
+    strcpy(msg_t.name, student[help_code].name);
+    strcpy(msg_t.real_name, student[help_code].real_name);
+    strcpy(msg_t.path, student[help_code].path);
+    msg_t.port = start_port + help_code;
+
+    //Send Student's Information according to Help-Code
+    
+    if (send(teacher_fd, (void *)&msg_t, sizeof(msg_t), 0) <= 0) {
+        DBG("Send Student's Information Error.\n");
+        close(teacher_fd);
+        return NULL;
+    }
+
+    close(teacher_fd);
+
     return NULL;
 }
 
