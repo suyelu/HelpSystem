@@ -14,6 +14,7 @@
 struct Stu {
     bool flag;
     char name[20];
+    char real_name[20];
     char path[50];
 };
 

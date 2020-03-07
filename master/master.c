@@ -41,7 +41,10 @@ void *work(void *arg) {
         close(client_fd[ind]);
         return NULL;
     }
-
+    //添加信息到列表
+    strcpy(student[ind].name, first_msg.name);
+    strcpy(student[ind].path, first_msg.path);
+    strcpy(student[ind].real_name, first_msg.real_name);
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
         DBG("Client closed.\n");
         close(client_fd[ind]);
