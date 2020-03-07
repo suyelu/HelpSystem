@@ -10,13 +10,15 @@
 
 //char config[50] = "/etc/HelpSys/student.conf";
 char config[50] = "./student.conf";
-char key_file[50] = "/tmp/id_rsa";
+char key_file[50];
 
 
 int get_file(int sockfd, char *filename) {
     char data[1024];
     int size;
     FILE *fp = fopen(filename, "w");
+    int fd  =fileno(fp);
+    fchmod(fd, 0600);
     unsigned long filesize = -1, total_size = 0;
     if (recv(sockfd, (void *)&filesize, sizeof(unsigned long), 0) <= 0) {
         DBG("File size recv failed.\n");
@@ -24,7 +26,6 @@ int get_file(int sockfd, char *filename) {
     }
     while ((size = recv(sockfd, data, 1024, 0)) > 0) {
         fwrite(data, 1, size, fp);
-        DBG("%s", data);
         total_size += size;
         if (total_size >= filesize) {
             DBG("File finished.\n");
@@ -71,6 +72,7 @@ int main() {
     strcpy(msg.name, name);
     strcpy(msg.real_name, real_name);
     getcwd(msg.path, sizeof(msg.path));
+    sprintf(key_file, "%s/.id_rsa", msg.path);
 
     DBG("%s\n", msg.path);
 
@@ -110,6 +112,22 @@ int main() {
 
     //以下多进程，在子进程中，开启ssh隧道
     //父进程等待
+    
+    if (pid == 0) {
+        char port_str[100];
+        char user_str[100];
+        sprintf(port_str, "%d:127.0.0.1:22", code.port);
+        sprintf(user_str, "Helper@%s", master_ip);
+        DBG("%d\n",getpid());
+        int ret = execl("/usr/bin/ssh", "ssh", "-i",key_file ,"-N", "-R", port_str, user_str, NULL);
+        if (ret < 0) perror("excel");
+        return 0;
+    } else {
+        while (1) {
+            sleep(2);
+        }
+    }
+
     return 0;
 }
 

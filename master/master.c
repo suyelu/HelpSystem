@@ -19,7 +19,7 @@ int size, sum = 0;
 
 bool check_online(char *username) {
     for(int i = 0; i < size; i++) {
-        if (strcmp(username, student[i].name) == 0) {
+        if (student[i].flag && (strcmp(username, student[i].name) == 0)) {
             return true;
         }
     }
@@ -83,9 +83,12 @@ void *work(void *arg) {
     }
     if (check_online(first_msg.name)) {
        //名字重复
+        DBG("Already on system.\n");
         student[ind].flag = false;
         close(client_fd[ind]);
         return NULL;
+    } else {
+        student[ind].flag = true;
     }
     //添加信息到列表
     strcpy(student[ind].name, first_msg.name);
@@ -148,7 +151,7 @@ int main() {
             //服务端端口已全部用完
             //通知客户端无法建立连接，断开连接，并进入下次循环
         }
-        student[sub].flag = true;
+        //student[sub].flag = true;
         client_fd[sub] = client_in;
         sub_index[sub] = sub;
         int who = -1;
