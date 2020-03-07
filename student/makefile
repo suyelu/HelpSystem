@@ -12,6 +12,7 @@ ${OBJS}: %.o: %.c
 	@${CC} -c ${CFLAGS} $< -o $@
 
 .PHONY: clean
+clean:
 	@rm -f *.o helpme
 	@rm -f ../common/*.o
 	@echo "Cleaning done"
