@@ -17,3 +17,5 @@ clean:
 	@rm -f ../common/*.o
 	@echo "Cleaning done"
 
+install:
+	@bash install.sh

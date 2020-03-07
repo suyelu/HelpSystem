@@ -10,7 +10,31 @@
 
 //char config[50] = "/etc/HelpSys/student.conf";
 char config[50] = "./student.conf";
+char key_file[50] = "/tmp/id_rsa";
 
+
+int get_file(int sockfd, char *filename) {
+    char data[1024];
+    int size;
+    FILE *fp = fopen(filename, "w");
+    unsigned long filesize = -1, total_size = 0;
+    if (recv(sockfd, (void *)&filesize, sizeof(unsigned long), 0) <= 0) {
+        DBG("File size recv failed.\n");
+        return -1;
+    }
+    while ((size = recv(sockfd, data, 1024, 0)) > 0) {
+        fwrite(data, 1, size, fp);
+        DBG("%s", data);
+        total_size += size;
+        if (total_size >= filesize) {
+            DBG("File finished.\n");
+            break;
+        }
+    }
+    fclose(fp);
+    DBG("File write to %s\n", filename);
+    return 0;
+}
 
 int main() {
     int master_port, sockfd, type = 1;
@@ -54,12 +78,38 @@ int main() {
 
     if (send(sockfd, (void *)&msg, sizeof(msg), 0) <= 0) {
         perror("send");
+        close(sockfd);
         exit(1);
     }
     DBG("Send success.\n");
     
 
     //Here we need recv for help code and port.
+    struct Code code;
+
+    if (recv(sockfd, (void *)&code, sizeof(code), 0) < 0) {
+        perror("recv code");
+        close(sockfd);
+        exit(1);
+    }
+
+    DBG("Server has provide you a Help-Code : %d\n", code.code);
+    DBG("Please Tell Your Teacher This Help-Code %d\n", code.code);
+    
+    //Here we need recv a id_rsa key
+    
+    get_file(sockfd, key_file);
+
+    int pid;
+
+    if ((pid = fork()) < 0) {
+        perror("fork");
+        close(sockfd);
+        exit(1);
+    }
+
+    //以下多进程，在子进程中，开启ssh隧道
+    //父进程等待
     return 0;
 }
 

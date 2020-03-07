@@ -7,8 +7,10 @@
 
 #include "master.h"
 
-//char config[50] = "/etc/HelpSys/master.conf";
-char config[50] = "./master.conf";
+char config[50] = "/etc/HelpSys/master.conf";
+//char key_file[50] = "./id_rsa";
+char key_file[50] = "/etc/HelpSys/.ssh/id_rsa";
+//char config[50] = "./master.conf";
 char tmp[20] = {0};
 struct Stu student[MAX];
 pthread_t client_t[MAX], teacher_t;
@@ -22,6 +24,45 @@ bool check_online(char *username) {
         }
     }
     return false;
+}
+
+unsigned long get_file_size(const char *path) {
+    unsigned long filesize = -1;
+    struct stat statbuff;
+    if (stat(path, &statbuff) < 0){
+        return filesize;
+    } else {
+        filesize = statbuff.st_size;
+    }
+    return filesize;
+}
+
+void send_file(int sockfd, char *filename) {
+    FILE *fd = NULL;
+    char data[1024];
+    size_t num_read;
+    fd = fopen(filename, "r");
+    if (!fd) {
+        DBG("File %s open error\n", filename);
+    } else {
+        unsigned long filesize = get_file_size(filename);
+
+        if (send(sockfd, (void *)&filesize, sizeof(unsigned long), 0) <= 0) {
+            DBG("File size send failed.\n");
+            return ;
+        }
+        while (1) {
+            num_read = fread(data, 1, 1024, fd);
+            if (send(sockfd, data, num_read, 0) < 0) {
+                DBG("Error in sending file.\n");
+            }
+            if (num_read == 0)  {
+                break;
+            }
+        }
+        DBG("%s sent sucess.\n", filename);
+    }
+    fclose(fd);
 }
 
 
@@ -62,6 +103,10 @@ void *work(void *arg) {
         student[ind].flag = false;
         return NULL;
     }
+
+    //Now we need seed a id_rsa key to student in order to ssh
+    
+    send_file(client_fd[ind], key_file);
 
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
         DBG("Client closed.\n");

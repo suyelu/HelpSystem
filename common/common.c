@@ -201,6 +201,8 @@ int connect_nonblock(int port, char *host, long timeout) {
         close(sockfd);
         return -1;
     }
+	ul = 0;
+	ioctl(sockfd, FIONBIO, &ul);
     return sockfd;
 }
 
