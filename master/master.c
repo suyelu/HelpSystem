@@ -11,8 +11,8 @@
 char config[50] = "./master.conf";
 char tmp[20] = {0};
 struct Stu student[MAX];
-pthread_t client_t[MAX];
-int client_fd[MAX], sub_index[MAX];
+pthread_t client_t[MAX], teacher_t;
+int client_fd[MAX], sub_index[MAX], teacher_fd;
 int size, sum = 0;
 
 bool check_online(char *username) {
@@ -24,6 +24,11 @@ bool check_online(char *username) {
     return false;
 }
 
+
+void *teacher_work(void *arg) {
+    DBG("Teacher on.\n");
+    return NULL;
+}
 
 void *work(void *arg) {
     int ind = *(int*)arg;
@@ -45,6 +50,7 @@ void *work(void *arg) {
     strcpy(student[ind].name, first_msg.name);
     strcpy(student[ind].path, first_msg.path);
     strcpy(student[ind].real_name, first_msg.real_name);
+    DBG("%s:%s:%s\n", student[ind].real_name, student[ind].name, student[ind].path);
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
         DBG("Client closed.\n");
         close(client_fd[ind]);
@@ -68,7 +74,7 @@ int main() {
     master_listen = socket_create(master_port);
 
     while (1) {
-        DBG("Master listening.\n");
+        //DBG("Master listening.\n");
         if ((client_in = accept(master_listen, NULL, NULL)) < 0) {
             perror("accept()");
             exit(1);
@@ -88,7 +94,26 @@ int main() {
         student[sub].flag = true;
         client_fd[sub] = client_in;
         sub_index[sub] = sub;
-        pthread_create(&client_t[sub], NULL, work, (void *)&sub_index[sub]);
+        int who = -1;
+        if (recv(client_in, (void *)&who, sizeof(int), 0) <= 0) {
+            DBG("User type unknown.\n");
+            student[sub].flag = false;
+            close(client_in);
+            continue;
+        }
+        if (who == 1)
+            pthread_create(&client_t[sub], NULL, work, (void *)&sub_index[sub]);
+        else if (who == 0) {
+            student[sub].flag = false;
+            teacher_fd = client_in;
+            pthread_create(&teacher_t, NULL, teacher_work, (void *)NULL);
+        }
+        else {
+            DBG("User type unknown.\n");
+            student[sub].flag = false;
+            close(client_in);
+            continue;
+        }
     }
 
     return 0;

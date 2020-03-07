@@ -157,12 +157,12 @@ int socket_connect(int port, char *host) {
 }
 
 
-bool connect_nonblock(int port, char *host, long timeout) {
+int connect_nonblock(int port, char *host, long timeout) {
 	int sockfd;
 	struct sockaddr_in dest_addr;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("socket() error");
-		return false;
+		return -1;
 	}
 
 	memset(&dest_addr, 0, sizeof(dest_addr));
@@ -197,8 +197,11 @@ bool connect_nonblock(int port, char *host, long timeout) {
 		} 
 		else ret = false;		
 	}
-	close(sockfd);
-	return ret;
+    if (!ret) {
+        close(sockfd);
+        return -1;
+    }
+    return sockfd;
 }
 
 int connect_sock(struct sockaddr_in addr){

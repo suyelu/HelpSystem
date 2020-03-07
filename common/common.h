@@ -10,8 +10,8 @@
 #define MASTER_PORT 8731
 
 struct Msg {
-    int type;
     char name[20];
+    char real_name[20];
     char path[50];
 };
 
@@ -25,7 +25,7 @@ int socket_accept(int sock_listen);
 
 int socket_connect(int port, char *host);
 
-bool connect_nonblock(int port, char *host, long timeout);
+int connect_nonblock(int port, char *host, long timeout);
 
 int connect_sock(struct sockaddr_in addr);
 
