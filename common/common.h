@@ -15,6 +15,11 @@ struct Msg {
     char path[50];
 };
 
+struct Code {
+    int code;
+    int port;
+};
+
 
 
 int get_conf_value(char *pathname, const char* key_name, char *value);

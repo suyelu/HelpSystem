@@ -13,7 +13,7 @@ char config[50] = "./student.conf";
 
 
 int main() {
-    int master_port, sockfd;
+    int master_port, sockfd, type = 1;
     char master_ip[20] = {0}, real_name[20] = {0}, name[20] = {0};
     char tmp[20] = {0};
     
@@ -34,9 +34,16 @@ int main() {
         DBG("Can not connect to the server.\n");
         exit(1);
     }
+    
+    
+    if (send(sockfd, (void *)&type, sizeof(int), 0) <= 0) {
+        perror("send type");
+        exit(1);
+    }
+    
+    DBG("Sent User-Type to Server.\n");
 
     struct Msg msg;
-    msg.type = 1;
     strcpy(msg.name, name);
     strcpy(msg.real_name, real_name);
     getcwd(msg.path, sizeof(msg.path));
@@ -50,6 +57,9 @@ int main() {
         exit(1);
     }
     DBG("Send success.\n");
+    
+
+    //Here we need recv for help code and port.
     return 0;
 }
 

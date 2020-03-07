@@ -12,7 +12,7 @@ char config[50] = "./master.conf";
 char tmp[20] = {0};
 struct Stu student[MAX];
 pthread_t client_t[MAX], teacher_t;
-int client_fd[MAX], sub_index[MAX], teacher_fd;
+int client_fd[MAX], sub_index[MAX], teacher_fd, start_port;
 int size, sum = 0;
 
 bool check_online(char *username) {
@@ -51,6 +51,18 @@ void *work(void *arg) {
     strcpy(student[ind].path, first_msg.path);
     strcpy(student[ind].real_name, first_msg.real_name);
     DBG("%s:%s:%s\n", student[ind].real_name, student[ind].name, student[ind].path);
+    //Here we send student about Help-Code and Port.
+    struct Code code;
+    code.code = ind;
+    code.port = start_port + ind;
+    
+    if (send(client_fd[ind], (void *)&code, sizeof(code), 0) <= 0) {
+        DBG("Send Help-Code failed.\n");
+        close(client_fd[ind]);
+        student[ind].flag = false;
+        return NULL;
+    }
+
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
         DBG("Client closed.\n");
         close(client_fd[ind]);
@@ -60,7 +72,7 @@ void *work(void *arg) {
 }
 
 int main() {
-    int  master_port, start_port, master_listen, client_in;
+    int  master_port,  master_listen, client_in;
     get_conf_value(config, "ConSize", tmp);
     size = atoi(tmp);
     get_conf_value(config, "MasterPort", tmp);
