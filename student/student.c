@@ -55,7 +55,7 @@ int main() {
     DBG("Name = %s RealNmae= %s\n", name, real_name);
     DBG("Config done.\n");
 
-    if ((sockfd = connect_nonblock(master_port, master_ip, 30000)) < 0) {
+    if ((sockfd = connect_nonblock(master_port, master_ip, 90000)) < 0) {
         printf("Can not connect to the server.\n");
         exit(1);
     }

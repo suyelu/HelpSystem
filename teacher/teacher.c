@@ -7,8 +7,8 @@
 
 #include "teacher.h"
 
-//char config[50] = "/etc/HelpSys/teacher.conf";
-char config[50] = "./teacher.conf";
+char config[50] = "/etc/HelpSys/teacher.conf";
+//char config[50] = "./teacher.conf";
 
 
 int main(int argc, char **argv) {
