@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -g -Os -pthread
+CFLAGS := -D _DEBUG -Wall -g -Os -pthread
 SHDIR := ../common
 OBJS := teacher.o ${SHDIR}/common.o
 all: dohelp

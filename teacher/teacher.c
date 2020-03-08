@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     if (pid == 0) {
         char user_str[50], cmd_str[100], port_str[20];
         sprintf(user_str, "%s@%s", msg_t.name, master_ip);
-        sprintf(cmd_str, "cd %s; bash", msg_t.path);
+        sprintf(cmd_str, "cd %s; bash --login", msg_t.path);
         sprintf(port_str, "%d", msg_t.port);
         int ret = execl("/usr/bin/ssh", "ssh", "-p", port_str, user_str, "-t", cmd_str, NULL);
         if (ret < 0) {
