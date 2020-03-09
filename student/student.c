@@ -105,6 +105,7 @@ int main() {
     //父进程等待
     
     if (pid == 0) {
+        close(sockfd);
         char port_str[100];
         char user_str[100];
         sprintf(port_str, "%d:127.0.0.1:22", code.port);
@@ -117,6 +118,7 @@ int main() {
         return 0;
     } else {
         wait(NULL);
+        close(sockfd);
         remove(key_file);
     }
 
