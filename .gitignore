@@ -1,7 +1,0 @@
-./master/master.o
-./student/student.o
-./teacher/teacher.o
-./common/common.o
-./master/helper
-./student/helpme
-./teacher/dohelp
