@@ -105,13 +105,17 @@ void *work(void *arg) {
         close(client_fd[ind]);
         return NULL;
     }
+    int online = 0;
     if (check_online(first_msg.real_name)) {
        //名字重复
         DBG("Already on system.\n");
         student[ind].flag = false;
+        online = 1;
+        send(client_fd[ind], (void *)&online, sizeof(int), 0);
         close(client_fd[ind]);
         return NULL;
     } else {
+        send(client_fd[ind], (void *)&online, sizeof(int), 0);
         student[ind].flag = true;
     }
     //添加信息到列表
