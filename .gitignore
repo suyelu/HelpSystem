@@ -1,0 +1,4 @@
+*/*.o
+student/helpme
+teacher/dohelp
+master/helper
