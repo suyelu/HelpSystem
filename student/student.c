@@ -20,7 +20,7 @@ int get_file(int sockfd, char *filename) {
     int fd  =fileno(fp);
     fchmod(fd, 0600);
     unsigned long filesize = -1, total_size = 0;
-    if (recv(sockfd, (void *)&filesize, sizeof(unsigned long), 0) <= 0) {
+    if (recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
         DBG("File size recv failed.\n");
         return -1;
     }
@@ -82,7 +82,6 @@ int main() {
 
     //Here we need recv for help code and port.
     struct Code code;
-    printf("Size = %d\n",sizeof(code));
     int a = 0;
     if ((a = recv(sockfd, (void *)&code, sizeof(code), 0)) < 0) {
         perror("recv code");
