@@ -65,6 +65,21 @@ int main() {
         exit(1);
     }
     
+    int online = -1;
+
+    if (recv(sockfd, (void *)&online, sizeof(int), 0) <= 0) {
+        perror("recv error");
+        exit(1);
+    }
+    if (online == 1) {
+        printf("You Are alread online somewhere, NO need do this.\n");
+        exit(2);
+    } else if (online == 0){
+        printf("Login HelpSystem...\n");
+    } else {
+        printf("Something is wrong.\n");
+        exit(2);
+    }
 
     struct Msg msg;
     strcpy(msg.name, name);
@@ -72,7 +87,7 @@ int main() {
     getcwd(msg.path, sizeof(msg.path));
     sprintf(key_file, "%s/.id_rsa", msg.path);
 
-    DBG("Sending msg to Server...\n");
+    DBG("Sending User-Msg to Server...\n");
 
     if (send(sockfd, (void *)&msg, sizeof(msg), 0) <= 0) {
         perror("send");
