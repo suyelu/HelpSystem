@@ -17,9 +17,9 @@ pthread_t client_t[MAX], teacher_t;
 int client_fd[MAX], sub_index[MAX], teacher_fd, start_port;
 int size, sum = 0;
 
-bool check_online(char *username) {
+bool check_online(char *realname) {
     for(int i = 0; i < size; i++) {
-        if (student[i].flag && (strcmp(username, student[i].name) == 0)) {
+        if (student[i].flag && (strcmp(realname, student[i].real_name) == 0)) {
             return true;
         }
     }
@@ -105,7 +105,7 @@ void *work(void *arg) {
         close(client_fd[ind]);
         return NULL;
     }
-    if (check_online(first_msg.name)) {
+    if (check_online(first_msg.real_name)) {
        //名字重复
         DBG("Already on system.\n");
         student[ind].flag = false;
