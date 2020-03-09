@@ -7,7 +7,8 @@
 #### 对于`Student`端的安装
 
 ```shell
-cd student
+git clone https://github.com/suyelu/HelpSystem.git
+cd HelpSystem/student
 make
 sudo make install
 ```
@@ -23,5 +24,5 @@ sudo make install
 ## 下一步计划
 
 1. 添加线程锁，增加安全性
-
+2. Student端如果在没有写权限的目录运行，会因创建文件没有权限而报段错误，可更新
    
