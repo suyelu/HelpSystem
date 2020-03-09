@@ -82,12 +82,16 @@ int main() {
 
     //Here we need recv for help code and port.
     struct Code code;
-
-    if (recv(sockfd, (void *)&code, sizeof(code), 0) < 0) {
+    printf("Size = %d\n",sizeof(code));
+    int a = 0;
+    if ((a = recv(sockfd, (void *)&code, sizeof(code), 0)) < 0) {
         perror("recv code");
         close(sockfd);
         exit(1);
     }
+    printf("Recv = %d\n", a);
+
+    
 
     
     //Here we need recv a id_rsa key
