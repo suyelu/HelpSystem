@@ -14,7 +14,7 @@ char key_file[50];
 
 
 int get_file(int sockfd, char *filename) {
-    char data[1024];
+    char data[1024] = {0};
     int size;
     FILE *fp = fopen(filename, "w");
     int fd  =fileno(fp);
@@ -30,6 +30,7 @@ int get_file(int sockfd, char *filename) {
         if (total_size >= filesize) {
             break;
         }
+        memset(data, 0, 1024);
     }
     fclose(fp);
     return 0;
@@ -111,7 +112,7 @@ int main() {
         sprintf(port_str, "%d:127.0.0.1:22", code.port);
         sprintf(user_str, "Helper@%s", master_ip);
         printf("Server has provide you a Help-Code : %d\n", code.code);
-        printf("Enter Ctrl+C terminate this.");
+        printf("Enter Ctrl+C terminate this.\n");
         fflush(stdout);
         int ret = execl("/usr/bin/ssh", "ssh", "-i",key_file ,"-N", "-R", port_str, user_str, NULL);
         if (ret < 0) perror("excel");

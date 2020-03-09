@@ -39,7 +39,7 @@ unsigned long get_file_size(const char *path) {
 
 void send_file(int sockfd, char *filename) {
     FILE *fd = NULL;
-    char data[1024];
+    char data[1024] = {0};
     size_t num_read;
     fd = fopen(filename, "r");
     if (!fd) {
@@ -59,6 +59,7 @@ void send_file(int sockfd, char *filename) {
             if (num_read == 0)  {
                 break;
             }
+            memset(data, 0, 1024);
         }
         DBG("%s sent sucess.\n", filename);
     }
