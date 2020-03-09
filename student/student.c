@@ -28,12 +28,10 @@ int get_file(int sockfd, char *filename) {
         fwrite(data, 1, size, fp);
         total_size += size;
         if (total_size >= filesize) {
-            DBG("File finished.\n");
             break;
         }
     }
     fclose(fp);
-    DBG("File write to %s\n", filename);
     return 0;
 }
 
@@ -51,12 +49,10 @@ int main() {
     get_conf_value(config, "MasterPort", tmp);
     master_port = atoi(tmp);
 
-    DBG("IP = %s Port=%d\n", master_ip, master_port);
-    DBG("Name = %s RealNmae= %s\n", name, real_name);
-    DBG("Config done.\n");
+    DBG("Read Config Done.\n");
 
     if ((sockfd = connect_nonblock(master_port, master_ip, 90000)) < 0) {
-        printf("Can not connect to the server.\n");
+        perror("Can not connect to the server");
         exit(1);
     }
     
@@ -68,7 +64,6 @@ int main() {
         exit(1);
     }
     
-    DBG("Sent User-Type to Server.\n");
 
     struct Msg msg;
     strcpy(msg.name, name);
@@ -76,17 +71,13 @@ int main() {
     getcwd(msg.path, sizeof(msg.path));
     sprintf(key_file, "%s/.id_rsa", msg.path);
 
-    DBG("%s\n", msg.path);
-
-    DBG("Sending msg to Server.\n");
+    DBG("Sending msg to Server...\n");
 
     if (send(sockfd, (void *)&msg, sizeof(msg), 0) <= 0) {
         perror("send");
         close(sockfd);
         exit(1);
     }
-    DBG("Send success.\n");
-    
 
     //Here we need recv for help code and port.
     struct Code code;
@@ -120,6 +111,7 @@ int main() {
         sprintf(user_str, "Helper@%s", master_ip);
         printf("Server has provide you a Help-Code : %d\n", code.code);
         printf("Enter Ctrl+C terminate this.");
+        fflush(stdout);
         int ret = execl("/usr/bin/ssh", "ssh", "-i",key_file ,"-N", "-R", port_str, user_str, NULL);
         if (ret < 0) perror("excel");
         return 0;
