@@ -65,21 +65,6 @@ int main() {
         exit(1);
     }
     
-    int online = -1;
-
-    if (recv(sockfd, (void *)&online, sizeof(int), 0) <= 0) {
-        perror("recv error");
-        exit(1);
-    }
-    if (online == 1) {
-        printf("You Are alread online somewhere, NO need do this.\n");
-        exit(2);
-    } else if (online == 0){
-        printf("Login HelpSystem...\n");
-    } else {
-        printf("Something is wrong.\n");
-        exit(2);
-    }
 
     struct Msg msg;
     strcpy(msg.name, name);
@@ -95,6 +80,21 @@ int main() {
         exit(1);
     }
 
+    int online = -1;
+
+    if (recv(sockfd, (void *)&online, sizeof(int), 0) <= 0) {
+        perror("recv error");
+        exit(1);
+    }
+    if (online == 1) {
+        printf("You Are alread online somewhere, NO need do this.\n");
+        exit(2);
+    } else if (online == 0){
+        printf("Login HelpSystem...\n");
+    } else {
+        printf("Something is wrong.\n");
+        exit(2);
+    }
     //Here we need recv for help code and port.
     struct Code code;
     int a = 0;
@@ -103,7 +103,6 @@ int main() {
         close(sockfd);
         exit(1);
     }
-    printf("Recv = %d\n", a);
 
     
 
