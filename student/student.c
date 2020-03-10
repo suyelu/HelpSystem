@@ -11,6 +11,15 @@
 char config[50] = "/etc/HelpSys/student.conf";
 //char config[50] = "./student.conf";
 char key_file[50];
+int sockfd;
+
+void do_exit(int x) {
+    printf("SSH-Tunnel closed.\n");
+    printf("Bye.\n");
+    close(sockfd);
+    remove(key_file);
+    exit(0);
+}
 
 
 int get_file(int sockfd, char *filename) {
@@ -37,7 +46,7 @@ int get_file(int sockfd, char *filename) {
 }
 
 int main() {
-    int master_port, sockfd, type = 1;
+    int master_port, type = 1;
     char master_ip[20] = {0}, real_name[20] = {0}, name[20] = {0};
     char tmp[20] = {0};
     
@@ -135,16 +144,17 @@ int main() {
         if (ret < 0) perror("excel");
         return 0;
     } else {
+        signal(SIGINT, do_exit);
+        printf("execpid = %d\n", pid);
         while (1) {
             int heart_beat;
             if (recv(sockfd, (void *)&heart_beat, sizeof(int), 0) <= 0) {
                 close(sockfd);
+                kill(pid, 9);
                 remove(key_file);
             }
         }
         wait(NULL);
-        close(sockfd);
-        remove(key_file);
     }
 
     return 0;
