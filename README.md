@@ -14,7 +14,7 @@ sudo make install
 ```
 
 ##  使用
-
+> 前提，已完成Teacher到Student的免密登录，或告知Teacher密码
 1. 在任何路劲下均可执行`helpme`命令，但远端教师会直接连接到**当前工作目录**
 
 2. 目前支持`ctrl + c`结束程序
