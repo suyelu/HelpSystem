@@ -144,6 +144,18 @@ void *work(void *arg) {
         close(client_fd[ind]);
         student[ind].flag = false;
     }
+
+    //心跳过程
+    while (1) {
+        sleep(10);
+        int heart_beat = 1;
+        if (send(client_fd[ind], (void *)&heart_beat, sizeof(int), 0) <= 0) {
+           //Student already dead
+            close(client_fd[ind]);
+            student[ind].flag = false;
+            return NULL;
+        }
+    }
     return NULL;
 }
 

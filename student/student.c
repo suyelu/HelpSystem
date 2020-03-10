@@ -135,6 +135,13 @@ int main() {
         if (ret < 0) perror("excel");
         return 0;
     } else {
+        while (1) {
+            int heart_beat;
+            if (recv(sockfd, (void *)&heart_beat, sizeof(int), 0) <= 0) {
+                close(sockfd);
+                remove(key_file);
+            }
+        }
         wait(NULL);
         close(sockfd);
         remove(key_file);
