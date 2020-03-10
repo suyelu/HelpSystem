@@ -18,6 +18,5 @@ clean:
 	@echo "Cleaning done"
 
 install:
-	@pkill helper
 	@bash .install.sh
 	@helper &
