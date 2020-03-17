@@ -95,9 +95,26 @@ void *teacher_work(void *arg) {
     return NULL;
 }
 
+int version_ctrl(int fd) {
+    char version[20] = {0};
+    if (recv(fd, version, sizeof(version), 0) <= 0) {
+        perror("recv version code");
+        return -1;
+    }
+    if (strcmp(VER, version)) return -1;   
+    return 0;
+}
+
 void *work(void *arg) {
     int ind = *(int*)arg;
     DBG("%d\n", ind);
+    int ret = version_ctrl(client_fd[ind]);
+    send(client_fd[ind], (void *)&ret, sizeof(int), 0);
+    if (ret < 0) {
+        student[ind].flag = false;
+        close(client_fd[ind]);
+        return NULL;
+    }
     struct Msg first_msg;
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
         perror("recv");

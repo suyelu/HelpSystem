@@ -3,10 +3,9 @@
 #define _DEBUG
 
 #include "head.h"
-
+#define VER "2.0"
 
 #define MAX_SIZE 1024
-#define MASTER_PORT 8731
 
 struct Msg {
     char name[20];
@@ -25,7 +24,6 @@ struct Code {
     int code;
     int port;
 };
-
 
 
 int get_conf_value(char *pathname, const char* key_name, char *value);

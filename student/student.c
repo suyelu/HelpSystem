@@ -74,6 +74,28 @@ int main() {
         exit(1);
     }
     
+    if (send(sockfd, VER, sizeof(VER), 0) <= 0) {
+        perror("send Version");
+        exit(1);
+    }
+    
+    int ver_flag;
+
+    if (recv(sockfd, (void *)&ver_flag, sizeof(int), 0) <= 0) {
+        perror("recv Version Flag");
+        exit(1);
+    }
+    if (!ver_flag) {
+        DBG("Version OK!\n");
+    } else if (ver_flag == -1) {
+        DBG("Version not OK!\n");
+        close(sockfd);
+        exit(1);
+    } else {
+        DBG("Version Flag Error\n");
+        close(sockfd);
+        exit(1);
+    }
 
     struct Msg msg;
     strcpy(msg.name, name);
