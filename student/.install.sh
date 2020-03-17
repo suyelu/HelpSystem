@@ -10,10 +10,11 @@ cp ./.student.conf.sample ${ConfigDir}/student.conf
 
 if [[ $check_system_info =~ "Darwin" ]]; then
     sed -i '' 's/XXX/'''${Name}'''/g' ${ConfigDir}/student.conf
+    cp helpme /usr/local/bin
 else
     sed -i 's/XXX/'''${Name}'''/g' ${ConfigDir}/student.conf
+    cp helpme /usr/bin
 fi
 
-cp helpme /usr/bin || cp helpme /usr/local/bin
 echo "Install OK"
 echo "You can change you config in ${ConfigDir}/student.conf."
