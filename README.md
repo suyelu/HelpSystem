@@ -29,4 +29,5 @@ sudo make install
    1. 每一个Teacher在第一次上线后，将自己的公钥传给Master，Master根据是否已在本地保存该公钥决定是否保存
    2. Student上线后，需要在合适的实际，接收Master发来的Teacher的公钥
    3. 根据是否已认证决定是否完成免密登录的设置
+   4.
    
