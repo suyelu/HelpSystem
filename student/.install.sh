@@ -32,7 +32,7 @@ fi
 read -p "请输入你的真实姓名:" Name
 sudo cp ./.student.conf.sample ${ConfigDir}/student.conf
 sudo sed -i  's/XXX/'''${Name}'''/g' ${ConfigDir}/student.conf
-sudo sed -i  's/PWD/'''${HOME}'''/g' ${ConfigDir}/student.conf
+sudo sed -i  's#PWD#'''${HOME}'''#g' ${ConfigDir}/student.conf
 
 
 if [[ $check_system_info =~ "Darwin" ]]; then
