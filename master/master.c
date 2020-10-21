@@ -14,7 +14,7 @@ char key_file[50] = "/etc/HelpSys/.ssh/id_rsa";
 char tmp[20] = {0};
 struct Stu student[MAX];
 pthread_t client_t[MAX], teacher_t;
-int client_fd[MAX], sub_index[MAX], teacher_fd, start_port;
+int client_fd[MAX], sub_index[MAX], teacher_fd[MAX], start_port;
 int size, sum = 0;
 
 bool check_online(char *realname, char *username) {
@@ -92,11 +92,12 @@ int get_file(int sockfd, char *filename) {
 
 void *teacher_work(void *arg) {
     DBG("Teacher on.\n");
+    int ind = *(int *)arg;
     int help_code = -1;
     //Recv Help-Code 
-    if (recv(teacher_fd, (void *)&help_code, sizeof(int), 0) <= 0) {
+    if (recv(teacher_fd[ind], (void *)&help_code, sizeof(int), 0) <= 0) {
         DBG("Recv Help-Code Error.\n");
-        close(teacher_fd);
+        close(teacher_fd[ind]);
         return NULL;
     }
     struct Msg_t msg_t;
@@ -107,13 +108,17 @@ void *teacher_work(void *arg) {
 
     //Send Student's Information according to Help-Code
     
-    if (send(teacher_fd, (void *)&msg_t, sizeof(msg_t), 0) <= 0) {
+    if (send(teacher_fd[ind], (void *)&msg_t, sizeof(msg_t), 0) <= 0) {
         DBG("Send Student's Information Error.\n");
-        close(teacher_fd);
+        close(teacher_fd[ind]);
         return NULL;
     }
 
-    close(teacher_fd);
+    char key_file[150] = {0};
+    sprintf(key_file, "/tmp/help_%d.tmp", help_code);
+    send_file(teacher_fd[ind], key_file);
+
+    close(teacher_fd[ind]);
 
     return NULL;
 }
@@ -249,8 +254,8 @@ int main() {
             pthread_create(&client_t[sub], NULL, work, (void *)&sub_index[sub]);
         else if (who == 0) {
             student[sub].flag = false;
-            teacher_fd = client_in;
-            pthread_create(&teacher_t, NULL, teacher_work, (void *)NULL);
+            teacher_fd[sub] = client_in;
+            pthread_create(&teacher_t, NULL, teacher_work, (void *)&sub_index[sub]);
         }
         else {
             DBG("User type unknown.\n");

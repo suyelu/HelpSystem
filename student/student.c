@@ -212,6 +212,14 @@ int main() {
         if (ret < 0) perror("excel");
         return 0;
     } else {
+        int pid1 ;
+        if ((pid1 = fork()) < 0) {
+            perror("fork");
+            exit(1);
+        } 
+        if (pid == 0) {
+            execlp("tmux", "tmux", "new-session", "-s", "helper-haizei");
+        }
         signal(SIGINT, do_exit);
         printf("execpid = %d\n", pid);
         while (1) {
@@ -220,6 +228,7 @@ int main() {
                 close(sockfd);
                 kill(pid, 9);
                 remove(key_file);
+                system("tmux kill-session -t helper-haizei");
             }
         }
         wait(NULL);
