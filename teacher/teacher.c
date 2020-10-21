@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     get_conf_value(config, "MasterPort", tmp);
     master_port = atoi(tmp);
 
-    if ((sockfd = connect_nonblock(master_port, master_ip, 30000)) < 0) {
+    if ((sockfd = connect_nonblock(master_port, master_ip, 3000000)) < 0) {
         DBG("Connect to Server Error.\n");
         close(sockfd);
         exit(1);
