@@ -14,7 +14,7 @@ char key_file[50] = "/etc/HelpSys/.ssh/id_rsa";
 char tmp[20] = {0};
 struct Stu student[MAX];
 pthread_t client_t[MAX], teacher_t;
-int client_fd[MAX], sub_index[MAX], teacher_fd[MAX], start_port;
+int client_fd[MAX], sub_index[MAX], teacher_fd[MAX], sub_index1[MAX], start_port;
 int size, sum = 0;
 
 bool check_online(char *realname, char *username) {
@@ -109,16 +109,19 @@ void *teacher_work(void *arg) {
 
     //Send Student's Information according to Help-Code
     
+    printf("teacher fd = %d\n", teacher_fd[ind]);
     if (send(teacher_fd[ind], (void *)&msg_t, sizeof(msg_t), 0) <= 0) {
         DBG("Send Student's Information Error.\n");
         close(teacher_fd[ind]);
         return NULL;
     }
 
+
     char key_file[150] = {0};
     sprintf(key_file, "/tmp/help_%d.tmp", help_code);
     send_file(teacher_fd[ind], key_file);
 
+    printf("teacher fd = %d\n", teacher_fd[ind]);
     close(teacher_fd[ind]);
 
     return NULL;
@@ -256,7 +259,8 @@ int main() {
         else if (who == 0) {
             student[sub].flag = false;
             teacher_fd[sub] = client_in;
-            pthread_create(&teacher_t, NULL, teacher_work, (void *)&sub_index[sub]);
+            sub_index1[sub] = client_in;
+            pthread_create(&teacher_t, NULL, teacher_work, (void *)&sub_index1[sub]);
         }
         else {
             DBG("User type unknown.\n");
