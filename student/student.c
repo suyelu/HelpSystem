@@ -208,17 +208,18 @@ int main() {
         printf("Server has provide you a Help-Code : %d\n", code.code);
         printf("Enter Ctrl+C terminate this.\n");
         fflush(stdout);
-        int ret = execl("/usr/bin/ssh", "ssh", "-i",key_file ,"-N", "-R", port_str, user_str, NULL);
+        int ret = execl("/usr/bin/ssh", "ssh", "-i", key_file ,"-N", "-R", port_str, user_str, "&", NULL);
         if (ret < 0) perror("excel");
         return 0;
     } else {
+        printf("In Father!\n");
         int pid1 ;
         if ((pid1 = fork()) < 0) {
             perror("fork");
             exit(1);
         } 
-        if (pid == 0) {
-            execlp("tmux", "tmux", "new-session", "-s", "helper-haizei");
+        if (pid1 == 0) {
+            execlp("tmux", "tmux", "new-session", "-s", "helper-haizei", NULL);
         }
         signal(SIGINT, do_exit);
         printf("execpid = %d\n", pid);
