@@ -21,6 +21,45 @@ void do_exit(int x) {
     exit(0);
 }
 
+unsigned long get_file_size(const char *path) {
+    unsigned long filesize = -1;
+    struct stat statbuff;
+    if (stat(path, &statbuff) < 0){
+        return filesize;
+    } else {
+        filesize = statbuff.st_size;
+    }
+    return filesize;
+}
+
+void send_file(int sockfd, char *filename) {
+    FILE *fd = NULL;
+    char data[1024] = {0};
+    size_t num_read;
+    fd = fopen(filename, "r");
+    if (!fd) {
+        DBG("File %s open error\n", filename);
+    } else {
+        uint64_t filesize = get_file_size(filename);
+
+        if (send(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
+            DBG("File size send failed.\n");
+            return ;
+        }
+        while (1) {
+            num_read = fread(data, 1, 1024, fd);
+            if (send(sockfd, data, num_read, 0) < 0) {
+                DBG("Error in sending file.\n");
+            }
+            if (num_read == 0)  {
+                break;
+            }
+            memset(data, 0, 1024);
+        }
+        DBG("%s sent sucess.\n", filename);
+    }
+    fclose(fd);
+}
 
 int get_file(int sockfd, char *filename) {
     char data[1024] = {0};
@@ -48,7 +87,8 @@ int get_file(int sockfd, char *filename) {
 int main() {
     int master_port, type = 1;
     char master_ip[20] = {0}, real_name[20] = {0}, name[20] = {0};
-    char tmp[20] = {0};
+    char tmp[20] = {0}, home_dir[50] = {0};
+
     
     struct passwd *pwd;
     pwd = getpwuid(getuid());
@@ -56,6 +96,7 @@ int main() {
     
     get_conf_value(config, "MasterIp", master_ip);
     get_conf_value(config, "RealName", real_name);
+    get_conf_value(config, "HomeDir", home_dir);
     get_conf_value(config, "MasterPort", tmp);
     master_port = atoi(tmp);
 
@@ -141,6 +182,11 @@ int main() {
     //Here we need recv a id_rsa key
     
     get_file(sockfd, key_file);
+
+    //Here we send student's pubkey to Master, In order to giving it to teacher
+    char pub_key[150] = {0};
+    sprintf(pub_key, "%s/.ssh/id_rsa.pub", home_dir);
+    send_file(sockfd, pub_key);
 
     int pid;
 

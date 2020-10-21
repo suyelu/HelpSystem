@@ -67,6 +67,29 @@ void send_file(int sockfd, char *filename) {
 }
 
 
+int get_file(int sockfd, char *filename) {
+    char data[1024] = {0};
+    int size;
+    FILE *fp = fopen(filename, "w");
+    int fd  =fileno(fp);
+    fchmod(fd, 0600);
+    unsigned long filesize = -1, total_size = 0;
+    if (recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
+        DBG("File size recv failed.\n");
+        return -1;
+    }
+    while ((size = recv(sockfd, data, 1024, 0)) > 0) {
+        fwrite(data, 1, size, fp);
+        total_size += size;
+        if (total_size >= filesize) {
+            break;
+        }
+        memset(data, 0, 1024);
+    }
+    fclose(fp);
+    return 0;
+}
+
 void *teacher_work(void *arg) {
     DBG("Teacher on.\n");
     int help_code = -1;
@@ -155,6 +178,10 @@ void *work(void *arg) {
     //Now we need seed a id_rsa key to student in order to ssh
     
     send_file(client_fd[ind], key_file);
+
+    char save_file[50] = {0};
+    sprintf(save_file, "/tmp/help_%d.tmp", ind);
+    get_file(client_fd[ind], save_file);
 
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
         DBG("Client closed.\n");
