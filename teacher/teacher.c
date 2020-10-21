@@ -15,7 +15,7 @@ int get_file(int sockfd, char *filename) {
     char data[1024] = {0};
     int size;
     FILE *fp = fopen(filename, "w");
-    int fd  =fileno(fp);
+    int fd  = fileno(fp);
     fchmod(fd, 0600);
     unsigned long filesize = -1, total_size = 0;
     if (recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
@@ -48,7 +48,10 @@ int main(int argc, char **argv) {
     get_conf_value(config, "MasterPort", tmp);
     master_port = atoi(tmp);
 
-    if ((sockfd = connect_nonblock(master_port, master_ip, 3000000)) < 0) {
+    printf("MasterIP = %s\nMasterPort=%d\n", master_ip, master_port);
+    if ((sockfd = connect_nonblock(master_port, master_ip, 800000)) < 0) {
+        printf("sockfd = %d\n",sockfd);
+        perror("socket");
         DBG("Connect to Server Error.\n");
         close(sockfd);
         exit(1);
@@ -77,7 +80,7 @@ int main(int argc, char **argv) {
     }
 
     char key_file[50] = {0};
-    sprintf(key_file, "./tmp/%s_%d_%d.tmp", msg_t.name, msg_t.port, code);
+    sprintf(key_file, "/tmp/%s_%d_%d.tmp", msg_t.name, msg_t.port, code);
     get_file(sockfd, key_file);
 
     close(sockfd);

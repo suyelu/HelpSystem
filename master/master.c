@@ -46,6 +46,7 @@ void send_file(int sockfd, char *filename) {
         DBG("File %s open error\n", filename);
     } else {
         uint64_t filesize = get_file_size(filename);
+        printf("filesize = %lld\n", filesize);
 
         if (send(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
             DBG("File size send failed.\n");
