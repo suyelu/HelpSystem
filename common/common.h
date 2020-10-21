@@ -3,7 +3,7 @@
 #define _DEBUG
 
 #include "head.h"
-#define VER "2.0"
+#define VER "4.0"
 
 #define MAX_SIZE 1024
 
