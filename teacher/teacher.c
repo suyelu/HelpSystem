@@ -16,14 +16,16 @@ int get_file(int sockfd, char *filename) {
     int size;
     FILE *fp = fopen(filename, "w");
     int fd  = fileno(fp);
-    fchmod(fd, 0600);
+    fchmod(fd, 0666);
     uint64_t filesize = -1, total_size = 0;
     if (recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
         DBG("File size recv failed.\n");
         perror("recv");
         return -1;
     }
+    printf("RecvSize = %d\n", filesize);
     while ((size = recv(sockfd, data, 1024, 0)) > 0) {
+        printf("Recv = %s\n", data);
         fwrite(data, 1, size, fp);
         total_size += size;
         if (total_size >= filesize) {
