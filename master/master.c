@@ -259,7 +259,7 @@ int main() {
         else if (who == 0) {
             student[sub].flag = false;
             teacher_fd[sub] = client_in;
-            sub_index1[sub] = client_in;
+            sub_index1[sub] = sub;
             pthread_create(&teacher_t, NULL, teacher_work, (void *)&sub_index1[sub]);
         }
         else {
