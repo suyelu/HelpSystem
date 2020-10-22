@@ -110,19 +110,23 @@ void *teacher_work(void *arg) {
     //Send Student's Information according to Help-Code
     
     printf("teacher fd = %d\n", teacher_fd[ind]);
-    if (send(teacher_fd[ind], (void *)&msg_t, sizeof(msg_t), 0) <= 0) {
+    int snum = 0;
+    if ((snum = send(teacher_fd[ind], (void *)&msg_t, sizeof(msg_t), 0)) <= 0) {
         DBG("Send Student's Information Error.\n");
         close(teacher_fd[ind]);
         return NULL;
     }
 
+    printf("sendnum = %d\n", snum);
+
+    sleep(10);
 
     char key_file[150] = {0};
     sprintf(key_file, "/tmp/help_%d.tmp", help_code);
     send_file(teacher_fd[ind], key_file);
 
     printf("teacher fd = %d\n", teacher_fd[ind]);
-   //close(teacher_fd[ind]);
+    close(teacher_fd[ind]);
 
     return NULL;
 }

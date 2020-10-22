@@ -17,9 +17,10 @@ int get_file(int sockfd, char *filename) {
     FILE *fp = fopen(filename, "w");
     int fd  = fileno(fp);
     fchmod(fd, 0600);
-    unsigned long filesize = -1, total_size = 0;
+    uint64_t filesize = -1, total_size = 0;
     if (recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
         DBG("File size recv failed.\n");
+        perror("recv");
         return -1;
     }
     while ((size = recv(sockfd, data, 1024, 0)) > 0) {
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
 
     //Send Help-Code to Server
     if (send(sockfd, (void *)&code, sizeof(int), 0) <= 0) {
-        DBG("Seng Help-Code Error.\n");
+        DBG("Sent Help-Code Error.\n");
         close(sockfd);
         exit(1);
     } 
