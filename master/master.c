@@ -38,11 +38,11 @@ unsigned long get_file_size(const char *path) {
 }
 
 void send_file(int sockfd, char *filename) {
-    FILE *fd = NULL;
+    FILE *fp = NULL;
     char data[1024] = {0};
     size_t num_read;
-    fd = fopen(filename, "r");
-    if (!fd) {
+    fp = fopen(filename, "r");
+    if (fp == NULL) {
         DBG("File %s open error\n", filename);
     } else {
         uint64_t filesize = get_file_size(filename);
@@ -53,7 +53,7 @@ void send_file(int sockfd, char *filename) {
             return ;
         }
         while (1) {
-            num_read = fread(data, 1, 1024, fd);
+            num_read = fread(data, 1, 1024, fp);
             perror("fread");
             printf("num_read = %d\n", num_read);
             if (send(sockfd, data, num_read, 0) < 0) {
@@ -66,7 +66,7 @@ void send_file(int sockfd, char *filename) {
         }
         DBG("%s sent sucess.\n", filename);
     }
-    fclose(fd);
+    fclose(fp);
 }
 
 
