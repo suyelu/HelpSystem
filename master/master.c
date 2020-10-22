@@ -125,6 +125,7 @@ void *teacher_work(void *arg) {
 
     char key_file[150] = {0};
     sprintf(key_file, "/tmp/help_%d.tmp", help_code);
+    printf("%s\n", key_file);
     send_file(teacher_fd[ind], key_file);
 
     printf("teacher fd = %d\n", teacher_fd[ind]);
@@ -196,6 +197,7 @@ void *work(void *arg) {
 
     char save_file[50] = {0};
     sprintf(save_file, "/tmp/help_%d.tmp", ind);
+    printf("%s\n", save_file);
     get_file(client_fd[ind], save_file);
 
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
