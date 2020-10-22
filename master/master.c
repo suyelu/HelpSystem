@@ -122,13 +122,13 @@ void *teacher_work(void *arg) {
 
     printf("sendnum = %d\n", snum);
 
-    sleep(10);
 
     char key_file[150] = {0};
     sprintf(key_file, "/tmp/help_%d.tmp", help_code);
     printf("key_file = %s\n", key_file);
     send_file(teacher_fd[ind], key_file);
-
+    
+    sleep(1);
     printf("teacher fd = %d\n", teacher_fd[ind]);
     close(teacher_fd[ind]);
 
