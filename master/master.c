@@ -59,6 +59,7 @@ void send_file(int sockfd, char *filename) {
             if (send(sockfd, data, num_read, 0) < 0) {
                 DBG("Error in sending file.\n");
             }
+            printf("fread %s\n",data);
             if (num_read == 0)  {
                 break;
             }
