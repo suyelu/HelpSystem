@@ -46,7 +46,6 @@ void send_file(int sockfd, char *filename) {
         DBG("File %s open error\n", filename);
     } else {
         uint64_t filesize = get_file_size(filename);
-        printf("filesize = %lld\n", filesize);
 
         if (send(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
             DBG("File size send failed.\n");
@@ -54,12 +53,9 @@ void send_file(int sockfd, char *filename) {
         }
         while (1) {
             num_read = fread(data, 1, 1024, fp);
-            perror("fread");
-            printf("num_read = %d\n", num_read);
             if (send(sockfd, data, num_read, 0) < 0) {
                 DBG("Error in sending file.\n");
             }
-            printf("fread %s\n",data);
             if (num_read == 0)  {
                 break;
             }
@@ -112,7 +108,6 @@ void *teacher_work(void *arg) {
 
     //Send Student's Information according to Help-Code
     
-    printf("teacher fd = %d\n", teacher_fd[ind]);
     int snum = 0;
     if ((snum = send(teacher_fd[ind], (void *)&msg_t, sizeof(msg_t), 0)) <= 0) {
         DBG("Send Student's Information Error.\n");
@@ -120,16 +115,12 @@ void *teacher_work(void *arg) {
         return NULL;
     }
 
-    printf("sendnum = %d\n", snum);
 
 
     char key_file[150] = {0};
     sprintf(key_file, "/tmp/help_%d.tmp", help_code);
-    printf("key_file = %s\n", key_file);
     send_file(teacher_fd[ind], key_file);
     
-    sleep(1);
-    printf("teacher fd = %d\n", teacher_fd[ind]);
     close(teacher_fd[ind]);
 
     return NULL;
