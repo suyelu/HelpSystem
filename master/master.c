@@ -122,7 +122,7 @@ void *teacher_work(void *arg) {
     send_file(teacher_fd[ind], key_file);
 
     printf("teacher fd = %d\n", teacher_fd[ind]);
-    close(teacher_fd[ind]);
+   //close(teacher_fd[ind]);
 
     return NULL;
 }
