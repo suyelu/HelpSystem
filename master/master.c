@@ -184,6 +184,7 @@ void *work(void *arg) {
         return NULL;
     }
 
+    printf("send code!\n");
     //Now we need seed a id_rsa pri key to student in order to ssh
     
     send_file(client_fd[ind], key_pri);
