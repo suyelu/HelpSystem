@@ -16,7 +16,7 @@ int get_file(int sockfd, char *filename) {
     int size;
     FILE *fp = fopen(filename, "w");
     int fd  = fileno(fp);
-    fchmod(fd, 0666);
+    fchmod(fd, 0600);
     uint64_t filesize = -1, total_size = 0;
     if (recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
         DBG("File size recv failed.\n");
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
     }
 
     char key_file[50] = {0};
-    sprintf(key_file, "/tmp/%s_%d_%d.tmp", msg_t.name, msg_t.port, code);
+    sprintf(key_file, "./%s_%d_%d.tmp", msg_t.name, msg_t.port, code);
     get_file(sockfd, key_file);
 
     close(sockfd);
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
     if (pid == 0) {
         char user_str[50], cmd_str[100], port_str[20];
         sprintf(user_str, "%s@%s", msg_t.name, master_ip);
-        sprintf(cmd_str, "cd %s; bash --login; tmux attach-session -t helper-haizei", msg_t.path);
+        sprintf(cmd_str, "tmux attach-session -t helper-haizei -c %s", msg_t.path);
         sprintf(port_str, "%d", msg_t.port);
         int ret = execl("/usr/bin/ssh", "ssh", "-i", key_file, "-p", port_str, user_str, "-t", cmd_str, NULL);
         if (ret < 0) {
