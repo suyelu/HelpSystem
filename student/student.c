@@ -72,6 +72,7 @@ int get_file(int sockfd, char *filename) {
         DBG("File size recv failed.\n");
         return -1;
     }
+    printf("Recv file size = %ld!\n", filesize);
     while ((size = recv(sockfd, data, 1024, 0)) > 0) {
         printf("%s\n", data);
         fwrite(data, 1, size, fp);
