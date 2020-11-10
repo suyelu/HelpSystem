@@ -179,7 +179,7 @@ int main() {
     
 
     
-    //Here we need recv a id_rsa key
+    //Here we need recv a id_rsa  pubkey 
     
     get_file(sockfd, key_file);
 

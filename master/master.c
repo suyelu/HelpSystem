@@ -9,7 +9,8 @@
 
 char config[50] = "/etc/HelpSys/master.conf";
 //char key_file[50] = "./id_rsa";
-char key_file[50] = "/etc/HelpSys/.ssh/id_rsa";
+char key_pub[50] = "/etc/HelpSys/.ssh/id_rsa.pub";
+char key_pri[50] = "/etc/HelpSys/.ssh/id_rsa";
 //char config[50] = "./master.conf";
 char tmp[20] = {0};
 struct Stu student[MAX];
@@ -117,9 +118,9 @@ void *teacher_work(void *arg) {
 
 
 
-    char key_file[150] = {0};
-    sprintf(key_file, "/tmp/help_%d.tmp", help_code);
-    send_file(teacher_fd[ind], key_file);
+    //char key_pub[150] = {0};
+    //sprintf(key_pub, "/tmp/help_%d.tmp", help_code);
+    send_file(teacher_fd[ind], key_pri);
     
     close(teacher_fd[ind]);
 
@@ -183,9 +184,9 @@ void *work(void *arg) {
         return NULL;
     }
 
-    //Now we need seed a id_rsa key to student in order to ssh
+    //Now we need seed a id_rsa pri key to student in order to ssh
     
-    send_file(client_fd[ind], key_file);
+    send_file(client_fd[ind], key_pri);
 
     char save_file[50] = {0};
     sprintf(save_file, "/tmp/help_%d.tmp", ind);
