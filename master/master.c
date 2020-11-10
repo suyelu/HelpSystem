@@ -196,6 +196,7 @@ void *work(void *arg) {
 */
     send_file(client_fd[ind], key_pub);
 
+    printf("After send key_pub\n");
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
         DBG("Client closed.\n");
         close(client_fd[ind]);
