@@ -187,11 +187,13 @@ void *work(void *arg) {
     //Now we need seed a id_rsa pri key to student in order to ssh
     
     send_file(client_fd[ind], key_pri);
-
+/*
     char save_file[50] = {0};
     sprintf(save_file, "/tmp/help_%d.tmp", ind);
     printf("save_file = %s\n", save_file);
     get_file(client_fd[ind], save_file);
+*/
+    send_file(client_fd[ind], key_pub);
 
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
         DBG("Client closed.\n");

@@ -179,14 +179,15 @@ int main() {
     
 
     
-    //Here we need recv a id_rsa  pubkey 
+    //Here we need recv a id_rsa  prikey 
     
     get_file(sockfd, key_file);
 
     //Here we send student's pubkey to Master, In order to giving it to teacher
     char pub_key[150] = {0};
-    sprintf(pub_key, "%s/.ssh/id_rsa.pub", home_dir);
-    send_file(sockfd, pub_key);
+    sprintf(pub_key, "%s/id_rsa.pub", msg.path);
+    get_file(sockfd, pub_key);
+
 
     int pid;
 
