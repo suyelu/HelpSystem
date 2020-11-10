@@ -192,6 +192,13 @@ int main() {
     get_file(sockfd, pub_key);
    printf("After puk_key recv!\n"); 
 
+    
+    char cmd_str[1024] = {0};
+    sprintf(cmd_str, "check_key %s", pub_key);
+
+    system(cmd_str);
+
+
     printf("before fork()\n");
     int pid;
 

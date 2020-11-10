@@ -33,12 +33,13 @@ read -p "请输入你的真实姓名:" Name
 sudo cp ./.student.conf.sample ${ConfigDir}/student.conf
 sudo sed -i  's/XXX/'''${Name}'''/g' ${ConfigDir}/student.conf
 sudo sed -i  's#PWD#'''${HOME}'''#g' ${ConfigDir}/student.conf
-
-
+chmod a+x ./check_key.sh
 if [[ $check_system_info =~ "Darwin" ]]; then
     sudo cp helpme /usr/local/bin
+    sudo cp check_key /usr/local/bin/check_key
 else
     sudo cp helpme /usr/bin
+    sudo cp check_key /usr/bin/check_key
 fi
 
 echo "Install OK"
