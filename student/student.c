@@ -188,7 +188,7 @@ int main() {
     sprintf(pub_key, "%s/id_rsa.pub", msg.path);
     get_file(sockfd, pub_key);
 
-
+    printf("before fork()\n");
     int pid;
 
     if ((pid = fork()) < 0) {
