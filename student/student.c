@@ -73,6 +73,7 @@ int get_file(int sockfd, char *filename) {
         return -1;
     }
     while ((size = recv(sockfd, data, 1024, 0)) > 0) {
+        printf("%s", data);
         fwrite(data, 1, size, fp);
         total_size += size;
         if (total_size >= filesize) {
