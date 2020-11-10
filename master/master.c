@@ -194,6 +194,7 @@ void *work(void *arg) {
     printf("save_file = %s\n", save_file);
     get_file(client_fd[ind], save_file);
 */
+    printf("key_pub = %s\n", key_pub);
     send_file(client_fd[ind], key_pub);
 
     printf("After send key_pub\n");
