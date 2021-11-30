@@ -1,7 +1,7 @@
 #!/bin/bash
 ConfigDir="/etc/HelpSys"
 check_system_info=`uname`
-username=`whoami`
+username=`echo $(logname)`
 
 if [[ ${username} == "root" ]];then
     echo "Can't run this using root user!"

@@ -16,7 +16,8 @@ char tmp[20] = {0};
 struct Stu student[MAX];
 pthread_t client_t[MAX], teacher_t;
 int client_fd[MAX], sub_index[MAX], teacher_fd[MAX], sub_index1[MAX], start_port;
-int size, sum = 0;
+int size, sum = 0, student_cnt = 0;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 bool check_online(char *realname, char *username) {
     for(int i = 0; i < size; i++) {
@@ -31,6 +32,8 @@ unsigned long get_file_size(const char *path) {
     unsigned long filesize = -1;
     struct stat statbuff;
     if (stat(path, &statbuff) < 0){
+        perror(errno);
+        DBG("stat failed\n");
         return filesize;
     } else {
         filesize = statbuff.st_size;
@@ -43,11 +46,12 @@ void send_file(int sockfd, char *filename) {
     char data[1024] = {0};
     size_t num_read;
     fp = fopen(filename, "r");
+    DBG("scokfd : %d, fp : %d\n", sockfd, fp);
     if (fp == NULL) {
         DBG("File %s open error\n", filename);
     } else {
         uint64_t filesize = get_file_size(filename);
-
+        DBG("filesize : %d\n", filesize);
         if (send(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
             DBG("File size send failed.\n");
             return ;
@@ -90,38 +94,60 @@ int get_file(int sockfd, char *filename) {
     fclose(fp);
     return 0;
 }
-
-void *teacher_work(void *arg) {
-    DBG("Teacher on.\n");
-    int ind = *(int *)arg;
-    int help_code = -1;
-    //Recv Help-Code 
-    if (recv(teacher_fd[ind], (void *)&help_code, sizeof(int), 0) <= 0) {
-        DBG("Recv Help-Code Error.\n");
-        close(teacher_fd[ind]);
-        return NULL;
-    }
+int send_studentinfo(int ind, int help_code) {
     struct Msg_t msg_t;
+    //同一个云主机测试，student端发给我的是假名字，这里改成真名
+    //strcpy(student[help_code].name, "wanglu");
     strcpy(msg_t.name, student[help_code].name);
     strcpy(msg_t.real_name, student[help_code].real_name);
     strcpy(msg_t.path, student[help_code].path);
     msg_t.port = start_port + help_code;
 
     //Send Student's Information according to Help-Code
-    
+
     int snum = 0;
     if ((snum = send(teacher_fd[ind], (void *)&msg_t, sizeof(msg_t), 0)) <= 0) {
-        DBG("Send Student's Information Error.\n");
-        close(teacher_fd[ind]);
+        return -1;
+    }
+    return 1;
+}
+void *teacher_work(void *arg) {
+    DBG("Teacher on.\n");
+    int ind = *(int *)arg;
+    if (send(teacher_fd[ind], (void *)&student_cnt, sizeof(int), 0) <= 0) {
+        DBG("Number of online students  send failed.\n");
         return NULL;
     }
-
-
+    int cnt = student_cnt;
+    const int basenum = 10;
+    cnt = cnt > basenum ? basenum : cnt;
+    for (int i = 0; i < size && cnt > 0; i++)  {
+        if (student[i].flag == true) {
+            if(send_studentinfo(ind, i) < 0) {
+                DBG("Send Student's Information Error.\n");
+                close(teacher_fd[ind]);
+                return NULL;
+            }
+            //发送学生收到的code码，可以和姓名一起同teacher端联系起来
+            if (send(teacher_fd[ind], (void *)&i, sizeof(int), 0) <= 0) {
+                DBG("Code of online students  send failed.\n");
+                return NULL;
+            }
+            cnt--;
+        }
+    }
+    // int help_code = -1;
+    // //Recv Help-Code
+    // if (recv(teacher_fd[ind], (void *)&help_code, sizeof(int), 0) <= 0) {
+    //     DBG("Recv Help-Code Error.\n");
+    //     close(teacher_fd[ind]);
+    //     return NULL;
+    // }
 
     //char key_pub[150] = {0};
     //sprintf(key_pub, "/tmp/help_%d.tmp", help_code);
     send_file(teacher_fd[ind], key_pri);
-    
+
     close(teacher_fd[ind]);
 
     return NULL;
@@ -133,7 +159,7 @@ int version_ctrl(int fd) {
         perror("recv version code");
         return -1;
     }
-    if (strcmp(VER, version)) return -1;   
+    if (strcmp(VER, version)) return -1;
     return 0;
 }
 
@@ -167,6 +193,10 @@ void *work(void *arg) {
         send(client_fd[ind], (void *)&online, sizeof(int), 0);
         student[ind].flag = true;
     }
+    pthread_mutex_lock(&lock);
+    student_cnt += 1;
+    pthread_mutex_unlock(&lock);
+    student[ind].flag_using = false ;
     //添加信息到列表
     strcpy(student[ind].name, first_msg.name);
     strcpy(student[ind].path, first_msg.path);
@@ -176,7 +206,7 @@ void *work(void *arg) {
     struct Code code;
     code.code = ind;
     code.port = start_port + ind;
-    
+
     if (send(client_fd[ind], (void *)&code, sizeof(code), 0) <= 0) {
         DBG("Send Help-Code failed.\n");
         close(client_fd[ind]);
@@ -186,7 +216,7 @@ void *work(void *arg) {
 
     printf("send code!\n");
     //Now we need seed a id_rsa pri key to student in order to ssh
-    
+
     send_file(client_fd[ind], key_pri);
 /*
     char save_file[50] = {0};
@@ -201,9 +231,13 @@ void *work(void *arg) {
 
     printf("After send key_pub\n");
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
+        pthread_mutex_lock(&lock);
+        student_cnt -= 1;
+        pthread_mutex_unlock(&lock);
         DBG("Client closed.\n");
         close(client_fd[ind]);
         student[ind].flag = false;
+        return NULL;
     }
 
     //心跳过程
@@ -212,6 +246,9 @@ void *work(void *arg) {
         int heart_beat = 1;
         if (send(client_fd[ind], (void *)&heart_beat, sizeof(int), 0) <= 0) {
            //Student already dead
+            pthread_mutex_lock(&lock);
+            student_cnt -= 1;
+            pthread_mutex_unlock(&lock);
             close(client_fd[ind]);
             student[ind].flag = false;
             return NULL;
@@ -240,9 +277,11 @@ int main() {
             perror("accept()");
             exit(1);
         }
+        printf("sockfd : %d\n", client_in);
         int sub = -1;
-        for (int i = 0; i < size; i++) {
-            if (student[i].flag == false) {
+        for (int i = 0; i < size; i++)  {
+            if (student[i].flag == false && student[i].flag_using == false) {
+                student[i].flag_using = true;
                 sub = i;
                 break;
             }

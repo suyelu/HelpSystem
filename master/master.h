@@ -13,6 +13,8 @@
 
 struct Stu {
     bool flag;
+    //防止不同客户端用一个数组下标记录,导致发送给他们同一个code码
+    bool flag_using;
     char name[20];
     char real_name[20];
     char path[50];
