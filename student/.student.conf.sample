@@ -1,5 +1,4 @@
-MasterIp=47.93.11.51
+MasterIp=127.0.0.1
 MasterPort=7000
 RealName=XXX
 HomeDir=PWD
-

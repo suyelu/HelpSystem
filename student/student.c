@@ -12,8 +12,15 @@ char config[50] = "/etc/HelpSys/student.conf";
 //char config[50] = "./student.conf";
 char key_file[50];
 int sockfd;
-
+struct Code code;
 void do_exit(int x) {
+    char test_str[100] = {0};
+        char cmd[100] = {0};
+        sprintf(test_str, "helper-haizei%d", code.code);
+        //退出时同时把tmux关掉
+        sprintf(cmd, "tmux kill-session -t %s", test_str);
+        printf("%s\n", cmd);
+        system(cmd);
     printf("SSH-Tunnel closed.\n");
     printf("Bye.\n");
     close(sockfd);
@@ -68,7 +75,15 @@ int get_file(int sockfd, char *filename) {
     int fd  =fileno(fp);
     fchmod(fd, 0600);
     unsigned long filesize = -1, total_size = 0;
-    if (recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0) <= 0) {
+    DBG("len : %d\n", sizeof(uint64_t));
+    int test_size = 0;
+    while(test_size < (int)sizeof(uint64_t)) {
+        test_size = recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0);
+        DBG("test_size : %d\n",test_size);
+        DBG("filesize received : %d\n",filesize);
+    }
+
+    if (test_size <= 0) {
         DBG("File size recv failed.\n");
         return -1;
     }
@@ -90,12 +105,9 @@ int main() {
     int master_port, type = 1;
     char master_ip[20] = {0}, real_name[20] = {0}, name[20] = {0};
     char tmp[20] = {0}, home_dir[50] = {0};
-
-    
     struct passwd *pwd;
     pwd = getpwuid(getuid());
     strcpy(name, pwd->pw_name);
-    
     get_conf_value(config, "MasterIp", master_ip);
     get_conf_value(config, "RealName", real_name);
     get_conf_value(config, "HomeDir", home_dir);
@@ -108,20 +120,20 @@ int main() {
         perror("Can not connect to the server");
         exit(1);
     }
-    
-    
+
+
     printf("Connected to Server.\n");
 
     if (send(sockfd, (void *)&type, sizeof(int), 0) <= 0) {
         perror("send type");
         exit(1);
     }
-    
+
     if (send(sockfd, VER, sizeof(VER), 0) <= 0) {
         perror("send Version");
         exit(1);
     }
-    
+
     int ver_flag;
 
     if (recv(sockfd, (void *)&ver_flag, sizeof(int), 0) <= 0) {
@@ -135,16 +147,20 @@ int main() {
         close(sockfd);
         exit(1);
     } else {
-        DBG("Version Flag Error\n");
+        DBG("Version Flag Error \n");
         close(sockfd);
         exit(1);
     }
 
     struct Msg msg;
+    //同一个云主机测试，改了个假名字
+    // int fake_name = getpid();
+    // sprintf(msg.name,"%d",fake_name);
+    // printf("name : %s\n",msg.name);
     strcpy(msg.name, name);
     strcpy(msg.real_name, real_name);
     getcwd(msg.path, sizeof(msg.path));
-    sprintf(key_file, "%s/.id_rsa", msg.path);
+    sprintf(key_file, "%s/id_rsa", msg.path);
 
     DBG("Sending User-Msg to Server...\n");
 
@@ -170,7 +186,7 @@ int main() {
         exit(2);
     }
     //Here we need recv for help code and port.
-    struct Code code;
+
     int a = 0;
     if ((a = recv(sockfd, (void *)&code, sizeof(code), 0)) < 0) {
         perror("recv code");
@@ -178,21 +194,21 @@ int main() {
         exit(1);
     }
 
-    
 
-   printf("After code recv!\n"); 
-    //Here we need recv a id_rsa  prikey 
-    
+
+   printf("After code recv!\n");
+    //Here we need recv a id_rsa  prikey
+
     get_file(sockfd, key_file);
-   printf("After key_file recv!\n"); 
+   printf("After key_file recv!\n");
 
     //Here we send student's pubkey to Master, In order to giving it to teacher
     char pub_key[150] = {0};
     sprintf(pub_key, "%s/id_rsa.pub", msg.path);
     get_file(sockfd, pub_key);
-   printf("After puk_key recv!\n"); 
+   printf("After puk_key recv!\n");
 
-    
+
     char cmd_str[1024] = {0};
     sprintf(cmd_str, "check_key %s", pub_key);
 
@@ -210,11 +226,12 @@ int main() {
 
     //以下多进程，在子进程中，开启ssh隧道
     //父进程等待
-    
+
     if (pid == 0) {
         close(sockfd);
         char port_str[100];
         char user_str[100];
+        //code.port = fake_code +7310;
         sprintf(port_str, "%d:127.0.0.1:22", code.port);
         sprintf(user_str, "Helper@%s", master_ip);
         printf("Server has provide you a Help-Code : %d\n", code.code);
@@ -229,11 +246,17 @@ int main() {
         if ((pid1 = fork()) < 0) {
             perror("fork");
             exit(1);
-        } 
-        if (pid1 == 0) {
-            execlp("tmux", "tmux", "new-session", "-s", "helper-haizei", NULL);
         }
+
+        char test_str[100] = {0};
+        char cmd[100] = {0};
+        sprintf(test_str, "helper-haizei%d", code.code);
+        if (pid1 == 0) {
+            execlp("tmux", "tmux", "new-session", "-s", test_str, NULL);
+        }
+
         signal(SIGINT, do_exit);
+        //kill(getpid(),SIGINT);
         printf("execpid = %d\n", pid);
         while (1) {
             int heart_beat;
@@ -241,7 +264,12 @@ int main() {
                 close(sockfd);
                 kill(pid, 9);
                 remove(key_file);
-                system("tmux kill-session -t helper-haizei");
+                char cmd[100] = {0};
+                char test_str[100] = {0};
+                sprintf(test_str, "helper-haizei%d", code.code);
+                sprintf(cmd,"tmux kill-session -t %s", test_str);
+                DBG("cmd %s\n", cmd);
+                system(cmd);
             }
         }
         wait(NULL);
@@ -249,4 +277,3 @@ int main() {
 
     return 0;
 }
-
