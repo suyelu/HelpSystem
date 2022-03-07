@@ -14,11 +14,11 @@ char key_pri[50] = "/etc/HelpSys/.ssh/id_rsa";
 //char config[50] = "./master.conf";
 char tmp[20] = {0};
 struct Stu student[MAX];
-pthread_t client_t[MAX], teacher_t;
+pthread_t client_t[MAX], teacher_t, heart_beat_t;
 int client_fd[MAX], sub_index[MAX], teacher_fd[MAX], sub_index1[MAX], start_port;
 int size, sum = 0, student_cnt = 0;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-
+int flag = 1;
 bool check_online(char *realname, char *username) {
     for(int i = 0; i < size; i++) {
         if (student[i].flag && (strcmp(realname, student[i].real_name) == 0) && (strcmp(username, student[i].name) == 0)) {
@@ -149,6 +149,8 @@ void *teacher_work(void *arg) {
     send_file(teacher_fd[ind], key_pri);
 
     close(teacher_fd[ind]);
+    //防止多线程带来的对当前teacher_fd[ind]修改问题
+    student[ind].flag = false;
 
     return NULL;
 }
@@ -163,6 +165,11 @@ int version_ctrl(int fd) {
     return 0;
 }
 
+static void cleanupHandler(void *arg) {
+    printf("unlock");
+    fflush(stdout);
+    pthread_mutex_unlock(&lock);
+}
 void *work(void *arg) {
     int ind = *(int*)arg;
     DBG("%d\n", ind);
@@ -184,6 +191,7 @@ void *work(void *arg) {
     if (check_online(first_msg.real_name, first_msg.name)) {
        //名字重复
         DBG("Already on system.\n");
+        student[ind].flag_using = false ;
         student[ind].flag = false;
         online = 1;
         send(client_fd[ind], (void *)&online, sizeof(int), 0);
@@ -229,8 +237,11 @@ void *work(void *arg) {
     printf("key_pub = %s\n", key_pub);
     send_file(client_fd[ind], key_pub);
 
+    pthread_cleanup_push(cleanupHandler, NULL);
     printf("After send key_pub\n");
     if (recv(client_fd[ind], (void *)&first_msg, sizeof(first_msg), 0) <= 0) {
+        printf("ooooooooooooooooooo");
+        fflush(stdout);
         pthread_mutex_lock(&lock);
         student_cnt -= 1;
         pthread_mutex_unlock(&lock);
@@ -239,25 +250,38 @@ void *work(void *arg) {
         student[ind].flag = false;
         return NULL;
     }
+    pthread_cleanup_pop(1);
 
+    return NULL;
+}
+void * heart_beat(void* p){
     //心跳过程
     while (1) {
         sleep(10);
         int heart_beat = 1;
-        if (send(client_fd[ind], (void *)&heart_beat, sizeof(int), 0) <= 0) {
-           //Student already dead
-            pthread_mutex_lock(&lock);
-            student_cnt -= 1;
-            pthread_mutex_unlock(&lock);
-            close(client_fd[ind]);
-            student[ind].flag = false;
-            return NULL;
+        for (int ind = 0; ind < MAX; ind++){
+            if(student[ind].flag == false) continue;
+            if (send(client_fd[ind], (void *)&heart_beat, sizeof(int), 0) <= 0) {
+               //Student already dead
+                pthread_mutex_lock(&lock);
+                student_cnt -= 1;
+                pthread_mutex_unlock(&lock);
+                pthread_cancel(client_t[ind]);
+                close(client_fd[ind]);
+                student[ind].flag = false;
+                int s = pthread_cancel(client_t[ind]);
+                if(s != 0) {
+                    perror("pthread_cancel");
+                    exit(-1);
+                } 
+            }
         }
     }
     return NULL;
 }
-
 int main() {
+    
+    signal(SIGPIPE,SIG_IGN);
     int  master_port,  master_listen, client_in;
     get_conf_value(config, "ConSize", tmp);
     size = atoi(tmp);
@@ -268,15 +292,21 @@ int main() {
     DBG("Config done.\n");
     memset(student, 0, sizeof(struct Stu) * MAX);
     DBG("Mem clean.\n");
-
     master_listen = socket_create(master_port);
+    pthread_create(&heart_beat_t, NULL,heart_beat,NULL);
 
     while (1) {
         //DBG("Master listening.\n");
         if ((client_in = accept(master_listen, NULL, NULL)) < 0) {
+            printf("-----------------");
+            fflush(stdout);
             perror("accept()");
             exit(1);
         }
+        struct timeval tv_out;
+        tv_out.tv_sec=5*60;
+        tv_out.tv_usec=0;
+ //setsockopt(client_in, SOL_SOCKET, SO_RCVTIMEO, &tv_out, sizeof(tv_out));
         printf("sockfd : %d\n", client_in);
         int sub = -1;
         for (int i = 0; i < size; i++)  {
@@ -290,6 +320,8 @@ int main() {
         if (sub < 0) {
             //服务端端口已全部用完
             //通知客户端无法建立连接，断开连接，并进入下次循环
+            close(client_in);
+            continue;
         }
         //student[sub].flag = true;
         client_fd[sub] = client_in;
@@ -304,7 +336,7 @@ int main() {
         if (who == 1)
             pthread_create(&client_t[sub], NULL, work, (void *)&sub_index[sub]);
         else if (who == 0) {
-            student[sub].flag = false;
+            student[sub].flag_using=false;
             teacher_fd[sub] = client_in;
             sub_index1[sub] = sub;
             pthread_create(&teacher_t, NULL, teacher_work, (void *)&sub_index1[sub]);
