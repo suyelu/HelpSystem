@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
         sprintf(cmd_str, "/usr/local/bin/tmux attach-session -t helper-haizei%d -c %s", code,student_choosed.path);
         DBG("cmd_str : %s", cmd_str);
         sprintf(port_str, "%d", student_choosed.port);
-        int ret = execl("/usr/bin/ssh", "ssh", "-i", key_file, "-p", port_str, user_str, "-t", cmd_str, NULL);
+        int ret = execl("/usr/bin/ssh", "ssh", "-i", key_file, "-o StrictHostKeyChecking no", "-p", port_str, user_str, "-t", cmd_str, NULL);
         if (ret < 0) {
             perror("execl");
         }
