@@ -237,7 +237,7 @@ int main() {
         printf("Server has provide you a Help-Code : %d\n", code.code);
         printf("Enter Ctrl+C terminate this.\n");
         fflush(stdout);
-        int ret = execl("/usr/bin/ssh", "ssh", "-i", key_file ,"-p","10089","-N", "-R", port_str, user_str, "&", NULL);
+        int ret = execl("/usr/bin/ssh", "ssh", "-i", key_file ,"-p","10089","-N", "-R", port_str, user_str,"-o StrictHostKeyChecking = no","&", NULL);
         if (ret < 0) perror("excel");
         return 0;
     } else {
