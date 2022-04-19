@@ -20,7 +20,7 @@ void do_exit(int x) {
         //退出时同时把tmux关掉
         sprintf(cmd, "tmux kill-session -t %s &", test_str);
         //printf("%s\n", cmd);
-        system(cmd+">/dev/null");
+        system(cmd);
     printf("SSH-Tunnel closed.\n");
     printf("Bye.\n");
     close(sockfd);
@@ -215,26 +215,28 @@ int main() {
     system(cmd_str);
 
 
-    //printf("before fork()\n");
+    //以下多进程，在子进程中，开启ssh隧道
+    //父进程等待
+    char port_str[100];
+    char user_str[100];
+    sprintf(port_str, "%d:127.0.0.1:22", code.port);
+    sprintf(user_str, "Helper@%s", master_ip);
+    printf("Server has provide you a Help-Code : \033[31m %d\n\033[0m", code.code);
+    printf("请记住Help-Code码，并在你寻求帮助时提供这个号码\n确认记住后请输入yes继续：");
+    char str[100]={0};
+    while(strcmp(str,"yes")!=0) {
+        scanf("%s",str);
+    }
     int pid;
-
     if ((pid = fork()) < 0) {
         perror("fork");
         close(sockfd);
         exit(1);
     }
 
-    //以下多进程，在子进程中，开启ssh隧道
-    //父进程等待
-
+        
     if (pid == 0) {
         close(sockfd);
-        char port_str[100];
-        char user_str[100];
-        //code.port = fake_code +7310;
-        sprintf(port_str, "%d:127.0.0.1:22", code.port);
-        sprintf(user_str, "Helper@%s", master_ip);
-        printf("Server has provide you a Help-Code : %d\n", code.code);
         printf("Enter Ctrl+C terminate this.\n");
         fflush(stdout);
         int ret = execl("/usr/bin/ssh", "ssh", "-i", key_file ,"-p","10089","-N", "-R", port_str, user_str,"-o StrictHostKeyChecking = no","&", NULL);
