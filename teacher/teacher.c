@@ -23,9 +23,9 @@ int get_file(int sockfd, char *filename) {
         perror("recv");
         return -1;
     }
-    printf("RecvSize = %d\n", filesize);
+   // printf("RecvSize = %d\n", filesize);
     while ((size = recv(sockfd, data, 1024, 0)) > 0) {
-        printf("Recv = %s\n", data);
+       // printf("Recv = %s\n", data);
         fwrite(data, 1, size, fp);
         total_size += size;
         if (total_size >= filesize) {
@@ -45,9 +45,9 @@ int main(int argc, char **argv) {
     get_conf_value(config, "MasterPort", tmp);
     master_port = atoi(tmp);
 
-    printf("MasterIP = %s\nMasterPort=%d\n", master_ip, master_port);
+   // printf("MasterIP = %s\nMasterPort=%d\n", master_ip, master_port);
     if ((sockfd = connect_nonblock(master_port, master_ip, 800000)) < 0) {
-        printf("sockfd = %d\n",sockfd);
+       // printf("sockfd = %d\n",sockfd);
         perror("socket");
         DBG("Connect to Server Error.\n");
         close(sockfd);
