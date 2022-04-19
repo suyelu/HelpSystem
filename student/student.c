@@ -268,7 +268,7 @@ int main() {
                 remove(key_file);
                 char cmd[100] = {0};
                 char test_str[100] = {0};
-                sprintf(test_str, "helper-haizei%d", code.code);
+                sprintf(test_str, "helper-%d", code.code);
                 sprintf(cmd,"tmux kill-session -t s", test_str);
                 DBG("cmd %s\n", cmd);
                 system(cmd);
