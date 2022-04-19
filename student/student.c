@@ -18,9 +18,9 @@ void do_exit(int x) {
         char cmd[100] = {0};
         sprintf(test_str, "helper-haizei%d", code.code);
         //退出时同时把tmux关掉
-        sprintf(cmd, "tmux kill-session -t %s", test_str);
-        printf("%s\n", cmd);
-        system(cmd);
+        sprintf(cmd, "tmux kill-session -t %s &", test_str);
+        //printf("%s\n", cmd);
+        system(cmd+">/dev/null");
     printf("SSH-Tunnel closed.\n");
     printf("Bye.\n");
     close(sockfd);
@@ -75,21 +75,21 @@ int get_file(int sockfd, char *filename) {
     int fd  =fileno(fp);
     fchmod(fd, 0600);
     unsigned long filesize = -1, total_size = 0;
-    DBG("len : %d\n", sizeof(uint64_t));
+    //DBG("len : %d\n", sizeof(uint64_t));
     int test_size = 0;
     while(test_size < (int)sizeof(uint64_t)) {
         test_size = recv(sockfd, (void *)&filesize, sizeof(uint64_t), 0);
-        DBG("test_size : %d\n",test_size);
-        DBG("filesize received : %d\n",filesize);
+        //DBG("test_size : %d\n",test_size);
+        //DBG("filesize received : %d\n",filesize);
     }
 
     if (test_size <= 0) {
         DBG("File size recv failed.\n");
         return -1;
     }
-    printf("Recv file size = %ld!\n", filesize);
+    //printf("Recv file size = %ld!\n", filesize);
     while ((size = recv(sockfd, data, 1024, 0)) > 0) {
-        printf("%s\n", data);
+        //printf("%s\n", data);
         fwrite(data, 1, size, fp);
         total_size += size;
         if (total_size >= filesize) {
@@ -114,7 +114,7 @@ int main() {
     get_conf_value(config, "MasterPort", tmp);
     master_port = atoi(tmp);
 
-    DBG("Read Config Done.\n");
+    //DBG("Read Config Done.\n");
 
     if ((sockfd = connect_nonblock(master_port, master_ip, 90000)) < 0) {
         perror("Can not connect to the server");
@@ -162,7 +162,7 @@ int main() {
     getcwd(msg.path, sizeof(msg.path));
     sprintf(key_file, "%s/id_rsa", msg.path);
 
-    DBG("Sending User-Msg to Server...\n");
+    //DBG("Sending User-Msg to Server...\n");
 
     if (send(sockfd, (void *)&msg, sizeof(msg), 0) <= 0) {
         perror("send");
@@ -196,17 +196,17 @@ int main() {
 
 
 
-   printf("After code recv!\n");
+   //printf("After code recv!\n");
     //Here we need recv a id_rsa  prikey
 
     get_file(sockfd, key_file);
-   printf("After key_file recv!\n");
+   //printf("After key_file recv!\n");
 
     //Here we send student's pubkey to Master, In order to giving it to teacher
     char pub_key[150] = {0};
     sprintf(pub_key, "%s/id_rsa.pub", msg.path);
     get_file(sockfd, pub_key);
-   printf("After puk_key recv!\n");
+   //printf("After puk_key recv!\n");
 
 
     char cmd_str[1024] = {0};
@@ -215,7 +215,7 @@ int main() {
     system(cmd_str);
 
 
-    printf("before fork()\n");
+    //printf("before fork()\n");
     int pid;
 
     if ((pid = fork()) < 0) {
@@ -241,7 +241,7 @@ int main() {
         if (ret < 0) perror("excel");
         return 0;
     } else {
-        printf("In Father!\n");
+        //printf("In Father!\n");
         int pid1 ;
         if ((pid1 = fork()) < 0) {
             perror("fork");
@@ -257,7 +257,7 @@ int main() {
 
         signal(SIGINT, do_exit);
         //kill(getpid(),SIGINT);
-        printf("execpid = %d\n", pid);
+        //printf("execpid = %d\n", pid);
         while (1) {
             int heart_beat;
             if (recv(sockfd, (void *)&heart_beat, sizeof(int), 0) <= 0) {
@@ -267,7 +267,7 @@ int main() {
                 char cmd[100] = {0};
                 char test_str[100] = {0};
                 sprintf(test_str, "helper-haizei%d", code.code);
-                sprintf(cmd,"tmux kill-session -t %s", test_str);
+                sprintf(cmd,"tmux kill-session -t s", test_str);
                 DBG("cmd %s\n", cmd);
                 system(cmd);
             }
