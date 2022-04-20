@@ -16,7 +16,7 @@ struct Code code;
 void do_exit(int x) {
     char test_str[100] = {0};
         char cmd[100] = {0};
-        sprintf(test_str, "helper-haizei%d", code.code);
+        sprintf(test_str, "helper-%d", code.code);
         //退出时同时把tmux关掉
         sprintf(cmd, "tmux kill-session -t %s &", test_str);
         //printf("%s\n", cmd);
@@ -252,7 +252,7 @@ int main() {
 
         char test_str[100] = {0};
         char cmd[100] = {0};
-        sprintf(test_str, "helper-haizei%d", code.code);
+        sprintf(test_str, "helper-%d", code.code);
         if (pid1 == 0) {
             execlp("tmux", "tmux", "new-session", "-s", test_str, NULL);
         }
